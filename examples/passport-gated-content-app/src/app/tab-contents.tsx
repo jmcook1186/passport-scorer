@@ -1,7 +1,7 @@
 import React from "react"
 import { Tabs, TabList, TabPanels, Tab, TabPanel, Link } from '@chakra-ui/react'
 
-const TabLayout = ({ isAboveThreshold }) => {
+const TabLayout = ({ isAboveThreshold, score }) => {
     return (
         <Tabs>
             <TabList>
@@ -22,12 +22,11 @@ const TabLayout = ({ isAboveThreshold }) => {
                     <WhatAreDaos />
                 </TabPanel>
                 <TabPanel>
-                    <JoinTheDao isAboveThreshold={isAboveThreshold} />
+                    <JoinTheDao isAboveThreshold={isAboveThreshold} score={score} />
                 </TabPanel>
             </TabPanels>
         </Tabs>
     )
-
 }
 
 const Welcome = () => {
@@ -87,7 +86,7 @@ const WhatAreDaos = () => {
 }
 
 
-const JoinTheDao = ({ isAboveThreshold }) => {
+const JoinTheDao = ({ isAboveThreshold, score }) => {
     if (isAboveThreshold) {
         return (
             <ContentAboveThreshold />
@@ -95,7 +94,7 @@ const JoinTheDao = ({ isAboveThreshold }) => {
     }
     else {
         return (
-            <ContentBelowThreshold />
+            <ContentBelowThreshold score={score} />
 
         )
     }
@@ -121,7 +120,11 @@ const ContentAboveThreshold = () => {
     )
 }
 
-const ContentBelowThreshold = () => {
+const ContentBelowThreshold = ({ score }) => {
+    let text: string = 'Your current Passport score is ${score}'
+    if (score == '') {
+        text = "You do not yet have a Passport score. Maybe you haven't created or connected your Passport?"
+    }
     return (
         <>
             <br />
@@ -130,6 +133,7 @@ const ContentBelowThreshold = () => {
             <p>We would love you to join our DAO.</p>
             <br />
             <p>Unfortunately, you do not quite meet the eligibility criteria.</p>
+            <p> {text} </p>
             <p>You can go to the <Link href="https://passport.gitcoin.co" color='teal.500' isExternal>Passport App </Link> and add more stamps to your Passport.</p>
             <p>When you have enough stamps to generate a score above 20, you can come back and join our DAO!</p>
             <br />

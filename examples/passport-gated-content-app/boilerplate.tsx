@@ -1,8 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { ethers } from 'ethers'
-import { ChakraProvider, Button, Flex, Heading } from '@chakra-ui/react'
-import { TabLayout } from './tab-contents'
 
 const APIKEY = process.env.NEXT_PUBLIC_GC_API_KEY
 const SCORERID = process.env.NEXT_PUBLIC_GC_SCORER_ID
@@ -18,13 +16,17 @@ const headers = APIKEY ? ({
   'X-API-Key': APIKEY
 }) : undefined
 
+declare global {
+  interface Window {
+    ethereum?: any
+  }
+}
 
+// define UserStruct here
 
 export default function Passport() {
   // here we deal with any local state we need to manage
   const [address, setAddress] = useState<string>('')
-  const [score, setScore] = useState<string>('')
-  const [isAboveThreshold, setIsAboveThreshold] = useState<Boolean>(false)
 
   useEffect(() => {
     checkConnection()
@@ -43,6 +45,7 @@ export default function Passport() {
   }, [])
 
   async function connect() {
+    console.log("in connect func")
     try {
       const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' })
       setAddress(accounts[0])
@@ -85,63 +88,64 @@ export default function Passport() {
 
       const data = await response.json()
       console.log('data:', data)
-      getScore()
     } catch (err) {
       console.log('error: ', err)
     }
   }
 
-  async function getScore() {
-    setScore('')
-    const GET_PASSPORT_SCORE_URI = `https://api.scorer.gitcoin.co/registry/score/${SCORERID}/${address}`
-    try {
-      const response = await fetch(GET_PASSPORT_SCORE_URI, {
-        headers
-      })
-      const passportData = await response.json()
-      if (passportData.score) {
-        // if the user has a score, round it and set it in the local state
-        const roundedScore = Math.round(passportData.score * 100) / 100
-        setScore(roundedScore.toString())
-        if (roundedScore > thresholdNumber) {
-          setIsAboveThreshold(true)
-        } else {
-          setIsAboveThreshold(false)
-        }
-        console.log("PASSPORT SCORE = ", roundedScore)
-      } else {
-        // if the user has no score, display a message letting them know to submit thier passporta
-        console.log('No score available, please add stamps to your passport and then resubmit.')
-      }
-    } catch (err) {
-      console.log('error: ', err)
-    }
-  }
 
   const styles = {
     main: {
       width: '900px',
       margin: '0 auto',
       paddingTop: 90
+    },
+    heading: {
+      fontSize: 60
+    },
+    intro: {
+      fontSize: 18,
+      color: 'rgba(0, 0, 0, .55)'
+    },
+    configurePassport: {
+      marginTop: 20,
+    },
+    linkStyle: {
+      color: '#008aff'
+    },
+    buttonContainer: {
+      marginTop: 20
+    },
+    buttonStyle: {
+      padding: '10px 30px',
+      outline: 'none',
+      border: 'none',
+      cursor: 'pointer',
+      marginRight: '10px',
+      borderBottom: '2px solid rgba(0, 0, 0, .2)',
+      borderRight: '2px solid rgba(0, 0, 0, .2)'
+    },
+    hiddenMessageContainer: {
+      marginTop: 15
+    },
+    noScoreMessage: {
+      marginTop: 20
     }
   }
-
 
   return (
     /* this is the UI for the app */
     <div style={styles.main}>
-      <ChakraProvider>
-        <Flex minWidth='max-content' alignItems='right' gap='2' justifyContent='right'>
-          <Button colorScheme='teal' variant='outline' onClick={connect}>Connect Wallet</Button>
-          <Button colorScheme='teal' variant='outline' onClick={submitPassport}>Connect Passport</Button>
-        </Flex>
-        <br />
-        <br />
-        <Heading as='h1' size='4xl' noOfLines={2}>Welcome to the decentralized web</Heading>
-        <br />
-        <TabLayout isAboveThreshold={isAboveThreshold} score={score} />
-
-      </ChakraProvider >
-    </div >
+      <h1 style={styles.heading}>Are you a trusted user? 🫶</h1>
+      <p style={styles.configurePassport}>Configure your passport <a style={styles.linkStyle} target="_blank" href="https://passport.gitcoin.co/#/dashboard">here</a></p>
+      <p style={styles.configurePassport}>Once you've added more stamps to your passport, submit your passport again to recalculate your score.</p>
+      <p style={styles.configurePassport}>If you have a score above 20, a Github stamp AND a Lens stamp, you are a trusted user! Click the Check Users button to find out!</p>
+      <div style={styles.buttonContainer}>
+        <div style={styles.buttonContainer}>
+          <button style={styles.buttonStyle} onClick={connect}>Connect</button>
+          <button style={styles.buttonStyle} onClick={submitPassport}>Submit Passport</button>
+        </div>
+      </div>
+    </div>
   )
 }
